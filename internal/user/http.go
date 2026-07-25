@@ -34,6 +34,8 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
 			writeJsonError(w, "username or email already exists", http.StatusConflict)
+		} else if errors.Is(err, ErrNameRequired) || errors.Is(err, ErrEmailRequired) || errors.Is(err, ErrInvalidAge) {
+			writeJsonError(w, "invalid input", http.StatusBadRequest)
 		} else {
 			writeJsonError(w, "failed to create user", http.StatusInternalServerError)
 		}
@@ -92,6 +94,8 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 			writeJsonError(w, "username or email already exists", http.StatusConflict)
 		} else if errors.Is(err, ErrNotFound) {
 			writeJsonError(w, "No record found", http.StatusNotFound)
+		} else if errors.Is(err, ErrNameRequired) || errors.Is(err, ErrEmailRequired) || errors.Is(err, ErrInvalidAge) || errors.Is(err, ErrInvalidId) {
+			writeJsonError(w, "invalid input", http.StatusBadRequest)
 		} else {
 			writeJsonError(w, "failed to update user", http.StatusInternalServerError)
 		}
@@ -117,6 +121,8 @@ func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if errors.Is(err, ErrNotFound) {
 			writeJsonError(w, "No record found", http.StatusNotFound)
+		} else if errors.Is(err, ErrInvalidId) {
+			writeJsonError(w, "Invalid Id", http.StatusBadRequest)
 		} else {
 			writeJsonError(w, "failed to delete user", http.StatusInternalServerError)
 		}

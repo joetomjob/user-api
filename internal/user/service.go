@@ -6,25 +6,37 @@ import (
 	"strings"
 )
 
-type Service struct {
-	repo *Repo
+type UserRepository interface {
+	Create(ctx context.Context, user User) (User, error)
+	GetById(ctx context.Context, id int) (User, error)
+	Update(ctx context.Context, user User, id int) (User, error)
+	Delete(ctx context.Context, id int) error
 }
 
-func NewService(repo *Repo) *Service {
+type Service struct {
+	repo UserRepository
+}
+
+var ErrNameRequired = errors.New("User name is required")
+var ErrEmailRequired = errors.New("Email is required")
+var ErrInvalidAge = errors.New("Invalid Age")
+var ErrInvalidId = errors.New("Invalid Id")
+
+func NewService(repo UserRepository) *Service {
 	return &Service{repo}
 }
 
 func (s *Service) Create(ctx context.Context, user User) (User, error) {
 	if strings.TrimSpace(user.Name) == "" {
-		return User{}, errors.New("User name is required")
+		return User{}, ErrNameRequired
 	}
 
 	if strings.TrimSpace(user.Email) == "" {
-		return User{}, errors.New("Email is required")
+		return User{}, ErrEmailRequired
 	}
 
 	if user.Age < 0 {
-		return User{}, errors.New("Age should be greater than or equal to zero")
+		return User{}, ErrInvalidAge
 	}
 
 	user, err := s.repo.Create(ctx, user)
@@ -50,19 +62,19 @@ func (s *Service) GetById(ctx context.Context, id int) (User, error) {
 
 func (s *Service) Update(ctx context.Context, user User, id int) (User, error) {
 	if id < 0 {
-		return User{}, errors.New("Invalid Id")
+		return User{}, ErrInvalidId
 	}
 
 	if strings.TrimSpace(user.Name) == "" {
-		return User{}, errors.New("User name is required")
+		return User{}, ErrNameRequired
 	}
 
 	if strings.TrimSpace(user.Email) == "" {
-		return User{}, errors.New("Email is required")
+		return User{}, ErrEmailRequired
 	}
 
 	if user.Age < 0 {
-		return User{}, errors.New("Age should be greater than or equal to zero")
+		return User{}, ErrInvalidAge
 	}
 
 	user, err := s.repo.Update(ctx, user, id)
@@ -75,7 +87,7 @@ func (s *Service) Update(ctx context.Context, user User, id int) (User, error) {
 
 func (s *Service) Delete(ctx context.Context, id int) error {
 	if id < 0 {
-		return errors.New("invalid id")
+		return ErrInvalidId
 	}
 
 	err := s.repo.Delete(ctx, id)

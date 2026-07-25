@@ -355,6 +355,77 @@ Notes from building this project step by step. Updated as we go, including mista
 
 ---
 
+## Step 44 — Service unit tests (in progress, 2026-07-25)
+
+**What I did:** Added `UserRepository` interface; `Service` depends on it. Added `FakeRepo` in `service_test.go` and success-path tests for Create/Update/GetById/Delete.
+
+**How to run:** `go test ./...` or `go test ./internal/user/ -v`.
+
+**Review (2026-07-25):**
+- Interface + fake wiring is correct; tests pass; `main` still works with real `*Repo`.
+- Fake `Create` returns empty `User{}` — success test doesn’t assert returned id/fields. Prefer set `user.Id = 1` and return `user`, then assert.
+- Validation tests (empty name/email/negative age) were removed — worth keeping as separate subtests.
+- `FakeRepo` can be `fakeRepo` (unexported) since it’s test-only.
+- `created` field on fake is unused.
+
+**Review round 2:** Fake Create/Update/Get return real-looking users; success tests assert `Id == 1`. Passes. Validation subtests still missing (optional). Step 44 OK to mark done and move to handler tests.
+
+---
+
+## Steps 44–45 — Service + POST handler tests (2026-07-25)
+
+**What I did:**
+- `UserRepository` + `FakeRepo`; service CRUD success test.
+- `http_test.go`: POST success → 201 + id; bad JSON → 400 via `httptest`.
+
+**Review:** Both pass. Small nits: typo `Exptected`; on decode failure prefer logging `err` not `got`. Step 45 done; next 46–47 Get/Put/Delete handler tests (`SetPathValue` for id).
+
+---
+
+## Step 46 — GET handler tests (2026-07-25)
+
+**What I did:** GET 200 with `SetPathValue`; GET 404 when fake returns `pgx.ErrNoRows` for id `100`. Learned negative id hits service validation (500) not 404.
+
+**Review:** Passes. Rename subtest `"invalid id"` → `"not found"` if you like (id 100 is valid format, missing row).
+
+---
+
+## Step 47 — PUT/DELETE handler tests (2026-07-25)
+
+**What I did:** Sentinel validation errors (`ErrNameRequired`, etc.); Create/Update validation → 400; PUT success + validation errors; DELETE success + invalid id → 400.
+
+**Review:** All pass. Sentinels fixed correctly. Optional gaps: Update/Delete **404** (`ErrNotFound`) not covered yet — fake always succeeds on Update/Delete. Step 47 good enough; Step 48 is repo integration tests with real Postgres.
+
+---
+
+## Steps 44–49 notes — Phase I (2026-07-25)
+
+**Handler/service unit tests:** done (fake repo, no Docker).
+
+**Repository integration:** started; use `godotenv.Load("../../.env")` (or skip) because `go test` cwd is the package dir, not the repo root. Prefer `t.Skip` over `log.Fatalf` when DB is unavailable.
+
+---
+
+## Steps 44–49 — Phase I tests complete (2026-07-25)
+
+**What I did:**
+- Service tests with `FakeRepo` + `UserRepository` interface.
+- Handler tests for Create/Get/Update/Delete (success + error cases) via `httptest`.
+- Repository integration tests against Postgres: Create → GetById → Update → Delete; skip if no `.env` / DB; load `../../.env`.
+- `go test ./...` green.
+
+**Challenges:** godotenv cwd (`../../.env`); `errors.Is` needs sentinel vars; request body reuse in handler tests; negative id ≠ 404.
+
+**Small polish left (optional):** assert `got.Id > 0` (not `user.Id < 0`); `defer pool.Close()`; repo not-found cases.
+
+---
+
+## Step 50 — README.md (2026-07-25)
+
+**What I did:** Added `README.md` covering setup (Docker Compose, `.env`, migration), `go run ./cmd/server`, API endpoints with example curls, tests (`go test ./...`), and timing middleware notes.
+
+---
+
 ## Step 37 — Timing log worker + channel (2026-07-24)
 
 **What I did:** Added `LogEvent` (method, path, duration), a buffered channel, and `LogWorker` that `range`s the channel and prints. Started the worker with `go LogWorker(ch)` and sent a sample event from `main`.

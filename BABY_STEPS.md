@@ -1,5 +1,7 @@
 # Go User API — Baby-Step Learning Plan
 
+This is a **checklist to work through from scratch**, not a status report of a finished build. Check off steps as you go; leave notes in [`LEARNING.md`](LEARNING.md).
+
 Build a Go user-management microservice from scratch using **PostgreSQL** and stdlib **`net/http`**. Work one tiny step at a time. Record challenges in [`LEARNING.md`](LEARNING.md). [`README.md`](README.md) (Phase J) explains how to run and test.
 
 ## How we work
@@ -58,76 +60,76 @@ user-api/
 
 ## Phase A — Empty project that runs
 
-1. ~~Create folder `user-api` and `cd` into it.~~ **done**
-2. ~~`go mod init github.com/joetomjob/user-api`.~~ **done**
-3. ~~`cmd/server/main.go` prints hello; `go run ./cmd/server`.~~ **done**
-4. ~~HTTP server on `:8080` returning `OK`.~~ **done**
-5. ~~Confirm with curl.~~ **done**
+1. Create folder `user-api` and `cd` into it.
+2. `go mod init github.com/joetomjob/user-api`.
+3. `cmd/server/main.go` prints hello; `go run ./cmd/server`.
+4. HTTP server on `:8080` returning `OK`.
+5. Confirm with curl.
 
 ## Phase B — Routing without a framework
 
-6. ~~`GET /health` → JSON `{"status":"ok"}`.~~ **done**
-7. ~~`Content-Type: application/json`.~~ **done**
-8. ~~Named health handler.~~ **done**
-9. ~~Unknown paths → 404 (mux default).~~ **done**
+6. `GET /health` → JSON `{"status":"ok"}`.
+7. `Content-Type: application/json`.
+8. Named health handler.
+9. Unknown paths → 404 (mux default).
 
 ## Phase C — User shape + JSON (no DB yet)
 
-10. ~~`internal/user/model.go` with `User` + JSON tags.~~ **done**
-11. ~~JSON write helper (deferred / inline encode OK).~~ **done**
-12. ~~`POST /users` decode + echo.~~ **done**
-13. ~~Practice with curl.~~ **done**
-14. ~~Validation → 400.~~ **done**
-15. ~~Invalid JSON → 400.~~ **done**
+10. `internal/user/model.go` with `User` + JSON tags.
+11. JSON write helper (deferred / inline encode OK).
+12. `POST /users` decode + echo.
+13. Practice with curl.
+14. Validation → 400.
+15. Invalid JSON → 400.
 
 ## Phase D — PostgreSQL locally
 
-16. ~~`docker-compose.yml` for Postgres.~~ **done**
-17. ~~`docker compose up -d` + verify.~~ **done**
-18. ~~`.env.example` + `.gitignore` (`.env`, `data/`).~~ **done**
-19. ~~Add `pgx` (+ `godotenv`).~~ **done**
-20. ~~Open pool from `DATABASE_URL`, `Ping`.~~ **done**
+16. `docker-compose.yml` for Postgres.
+17. `docker compose up -d` + verify.
+18. `.env.example` + `.gitignore` (`.env`, `data/`).
+19. Add `pgx` (+ `godotenv`).
+20. Open pool from `DATABASE_URL`, `Ping`.
 
 ## Phase E — Schema + Create
 
-21. ~~`migrations/001_create_users.sql`.~~ **done**
-22. ~~Apply migration.~~ **done**
-23. ~~Repository holding pool.~~ **done**
-24. ~~`Create` with `INSERT ... RETURNING id`.~~ **done**
-25–26. ~~Wire Create through HTTP.~~ **done**
-27. ~~201 + full user with id.~~ **done**
-28. ~~Unique violation → 409 (`23505`).~~ **done**
+21. `migrations/001_create_users.sql`.
+22. Apply migration.
+23. Repository holding pool.
+24. `Create` with `INSERT ... RETURNING id`.
+25–26. Wire Create through HTTP.
+27. 201 + full user with id.
+28. Unique violation → 409 (`23505`).
 
 ## Phase F — Service + remaining CRUD
 
-29. ~~Service layer.~~ **done**
-30. ~~Create via service.~~ **done**
-31. ~~GetByID + not-found (`ErrNotFound` / `pgx.ErrNoRows`).~~ **done**
-32. ~~`GET /users/{id}`.~~ **done**
-33. ~~Update + rows affected.~~ **done**
-34. ~~`PUT /users/{id}`.~~ **done**
-35. ~~Delete + rows affected.~~ **done**
-36. ~~`DELETE /users/{id}`.~~ **done**
+29. Service layer.
+30. Create via service.
+31. GetByID + not-found (`ErrNotFound` / `pgx.ErrNoRows`).
+32. `GET /users/{id}`.
+33. Update + rows affected.
+34. `PUT /users/{id}`.
+35. Delete + rows affected.
+36. `DELETE /users/{id}`.
 
 ## Phase G — Request timing (goroutines / channels / WaitGroup)
 
-37. ~~Timing logger worker + buffered channel.~~ **done**
-38. ~~WaitGroup; `close(ch)` + `wg.Wait()` after server stops.~~ **done**
-39. ~~Timing middleware + non-blocking send (`select`/`default`).~~ **done**
-40. ~~Wrap mux; verify with curl.~~ **done**
+37. Timing logger worker + buffered channel.
+38. WaitGroup; `close(ch)` + `wg.Wait()` after server stops.
+39. Timing middleware + non-blocking send (`select`/`default`).
+40. Wrap mux; verify with curl.
 
 ## Phase H — Error handling polish
 
-41. ~~Centralize API error JSON (`writeJsonError`).~~ **done**
-42. ~~Consistent codes: 400 / 404 / 409 / 500.~~ **done**
-43. ~~Context timeouts (5s) on DB calls.~~ **done**
+41. Centralize API error JSON (`writeJsonError`).
+42. Consistent codes: 400 / 404 / 409 / 500.
+43. Context timeouts (5s) on DB calls.
 
-## Phase I — Tests (next)
+## Phase I — Tests
 
-44. Unit-test service with a **fake** repository interface (no Docker).
-45. Handler tests (`httptest`) for `POST` success and 400.
-46. Handler tests for `GET` 200 and 404.
-47. Handler tests for `PUT` and `DELETE`.
+44. Service unit tests + fake repo.
+45. Handler POST success + 400.
+46. Handler GET 200 + 404.
+47. Handler PUT + DELETE tests.
 48. Repository integration tests against Postgres.
 49. `go test ./...` green.
 
@@ -142,4 +144,4 @@ user-api/
 
 ## Current next step
 
-**Step 44:** define a small repository interface, point `Service` at it, write a fake repo in a test, and unit-test validation (e.g. empty name) without Docker.
+**Step 1:** create folder `user-api` and `cd` into it, then continue through Phase A.
